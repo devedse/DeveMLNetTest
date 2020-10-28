@@ -189,9 +189,19 @@ namespace ObjectDetection.YoloParser
             var maxConfidencePerBox = confsUnflattened.Select(t => t.Select((n, i) => (Number: n, Index: i)).Max()).ToList();
             var boxesNumbered = boxesUnflattened.Select((b, i) => (Box: b, Index: i)).ToList();
 
-            var boxesIndexDieHogeConfidenceHebben = maxConfidencePerBox.Where(t => t.Number > threshold).ToList();
-            var alleBoxesDieHogeConfidenceHebben = boxesIndexDieHogeConfidenceHebben.Join(boxesNumbered, t => t.Index, t => t.Index, (l, r) => r).ToList();
+            var boxesIndexWhichHaveHighConfidence = maxConfidencePerBox.Where(t => t.Number > threshold).ToList();
+            var allBoxesThemselvesWithHighConfidence = boxesIndexWhichHaveHighConfidence.Join(boxesNumbered, t => t.Index, t => t.Index, (l, r) => (Box: r, Conf: l)).ToList();
 
+
+            Console.WriteLine("I would expect a bike, dog and car here");
+            Console.WriteLine("Instead we got:");
+
+            foreach (var b in allBoxesThemselvesWithHighConfidence)
+            {
+                Console.WriteLine($"{b.Conf.Number}: {labels[b.Conf.Index]} ({b.Box})");
+            }
+
+            throw new InvalidOperationException("Everything below this doesn't work anyway");
             for (int j = 0; j < labels.Length; j++)
             {
 
