@@ -198,7 +198,8 @@ namespace ObjectDetection.YoloParser
 
             foreach (var b in allBoxesThemselvesWithHighConfidence)
             {
-                Console.WriteLine($"{b.Conf.Number}: {labels[b.Conf.Index]} ({b.Box})");
+                var startString = $"{b.Conf.Number}: {labels[b.Conf.Index]}";
+                Console.WriteLine($"{startString.PadRight(30, ' ')}({string.Join(",", b.Box.Box.OriginalStuff)})");
             }
 
             throw new InvalidOperationException("Everything below this doesn't work anyway");
