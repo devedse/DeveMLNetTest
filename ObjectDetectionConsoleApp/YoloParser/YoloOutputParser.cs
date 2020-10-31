@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML;
 using Microsoft.ML.Data;
+using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -160,6 +161,10 @@ namespace ObjectDetection.YoloParser
                     Y = boxes[i + 1],
                     Width = boxes[i + 2] - boxes[i],
                     Height = boxes[i + 3] - boxes[i + 1],
+                    //X = boxes[i + 0] - boxes[i + 2] / 2f,
+                    //Y = boxes[i + 1] - boxes[i + 3] / 2f,
+                    //Width = boxes[i + 0] + boxes[i + 2] / 2f,
+                    //Height = boxes[i + 1] + boxes[i + 3] / 2f,
                     OriginalStuff = boxes.Skip(i).Take(4).ToArray()
                 });
             }
@@ -196,45 +201,22 @@ namespace ObjectDetection.YoloParser
             Console.WriteLine("I would expect a bike, dog and car here");
             Console.WriteLine("Instead we got:");
 
+            var boxesOutput = new List<YoloBoundingBox>();
+
             foreach (var b in allBoxesThemselvesWithHighConfidence)
             {
                 var startString = $"{b.Conf.Number}: {labels[b.Conf.Index]}";
                 Console.WriteLine($"{startString.PadRight(30, ' ')}({string.Join(",", b.Box.Box.OriginalStuff)})");
-            }
 
-            throw new InvalidOperationException("Everything below this doesn't work anyway");
-            for (int j = 0; j < labels.Length; j++)
-            {
-
-            }
-
-
-
-
-            int isnietgoedcount = 0;
-
-            var boxesOutput = new List<YoloBoundingBox>();
-            for (int i = 0; i < boxesUnflattened.Count; i++)
-            {
-                var bb = boxesUnflattened[i];
-                var conf = confsUnflattened[i];
-
-                var topResult = conf.Max();
-                var topResultIndex = conf.ToList().IndexOf(topResult);
-
-                if (bb.X > 0 && bb.Y > 0 && bb.Width > 0.01f && bb.Height > 0.01f)
+                boxesOutput.Add(new YoloBoundingBox()
                 {
-                    boxesOutput.Add(new YoloBoundingBox()
-                    {
-                        Dimensions = bb,
-                        Confidence = topResult,
-                        Label = labels[topResultIndex],
-                        BoxColor = classColors[topResultIndex % classColors.Length]
-                    });
-                }
+                    Dimensions = b.Box.Box,
+                    Confidence = b.Conf.Number,
+                    Label = labels[b.Conf.Index],
+                    BoxColor = classColors[b.Conf.Index % classColors.Length]
+                });
             }
 
-            var dingetje = boxesOutput.OrderByDescending(t => t.Confidence).ToList();
 
             return boxesOutput;
         }

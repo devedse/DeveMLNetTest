@@ -42,7 +42,7 @@ namespace ObjectDetection
             // Define scoring pipeline
             var pipeline = mlContext.Transforms.LoadImages(outputColumnName: "image", imageFolder: "", inputColumnName: nameof(ImageNetData.ImagePath))
                             .Append(mlContext.Transforms.ResizeImages(outputColumnName: "image", imageWidth: ImageNetSettings.imageWidth, imageHeight: ImageNetSettings.imageHeight, inputColumnName: "image"))
-                            .Append(mlContext.Transforms.ExtractPixels(outputColumnName: "input", inputColumnName: "image"))
+                            .Append(mlContext.Transforms.ExtractPixels(outputColumnName: "input", inputColumnName: "image", scaleImage: 1f / 255f))
                             .Append(mlContext.Transforms.ApplyOnnxModel(
                                 modelFile: modelLocation,
                                 outputColumnNames: new[] { "boxes", "confs" },

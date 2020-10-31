@@ -61,8 +61,8 @@ namespace ObjectDetection
                     var confsHere = confs[i];
 
                     var parsedBoxes = parser.ParseOutputs(boxesHere, confsHere);
-                    var filteredBoxes = parser.FilterBoundingBoxes(parsedBoxes, 5, 0.5f);
-                    outputBoxes.Add(filteredBoxes);
+                    parsedBoxes = parser.FilterBoundingBoxes(parsedBoxes, 5, 0.5f);
+                    outputBoxes.Add(parsedBoxes);
                 }
 
                 // Draw bounding boxes for detected objects in each of the images
@@ -117,10 +117,10 @@ namespace ObjectDetection
                 //height = (uint)originalImageHeight * height / OnnxModelScorer.ImageNetSettings.imageHeight;
 
 
-                var x = (uint)(originalImageWidth * box.Dimensions.X);
-                var y = (uint)(originalImageHeight * box.Dimensions.Y);
-                var width = (uint)(originalImageWidth * box.Dimensions.Width);
-                var height = (uint)(originalImageHeight * box.Dimensions.Height);
+                var x = (int)(originalImageWidth * box.Dimensions.X);
+                var y = (int)(originalImageHeight * box.Dimensions.Y);
+                var width = (int)(originalImageWidth * box.Dimensions.Width);
+                var height = (int)(originalImageHeight * box.Dimensions.Height);
 
                 // Bounding Box Text
                 string text = $"{box.Label} ({(box.Confidence * 100).ToString("0")}%)";
@@ -142,8 +142,11 @@ namespace ObjectDetection
                     SolidBrush colorBrush = new SolidBrush(box.BoxColor);
 
                     // Draw text on image 
-                    thumbnailGraphic.FillRectangle(colorBrush, (int)x, (int)(y - size.Height - 1), (int)size.Width, (int)size.Height);
-                    thumbnailGraphic.DrawString(text, drawFont, fontBrush, atPoint);
+                    //thumbnailGraphic.FillRectangle(colorBrush, (int)x, (int)(y - size.Height - 1), (int)size.Width, (int)size.Height);
+                    //thumbnailGraphic.DrawString(text, drawFont, fontBrush, atPoint);
+
+                    thumbnailGraphic.FillRectangle(colorBrush, (int)x, (int)(y + height + 1), (int)size.Width, (int)size.Height);
+                    thumbnailGraphic.DrawString(text, drawFont, fontBrush, new Point(atPoint.X, atPoint.Y + (int)size.Height + 1 + (int)height + 1));
 
                     // Draw bounding box on image
                     thumbnailGraphic.DrawRectangle(pen, x, y, width, height);
