@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using ObjectDetection.DataStructures;
 using ObjectDetection.YoloParser;
+using static Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator;
+using static Microsoft.ML.Transforms.Image.ImageResizingEstimator;
 
 namespace ObjectDetection
 {
@@ -41,8 +44,8 @@ namespace ObjectDetection
 
             // Define scoring pipeline
             var pipeline = mlContext.Transforms.LoadImages(outputColumnName: "image", imageFolder: "", inputColumnName: nameof(ImageNetData.ImagePath))
-                            .Append(mlContext.Transforms.ResizeImages(outputColumnName: "image", imageWidth: ImageNetSettings.imageWidth, imageHeight: ImageNetSettings.imageHeight, inputColumnName: "image"))
-                            .Append(mlContext.Transforms.ExtractPixels(outputColumnName: "input", inputColumnName: "image", scaleImage: 1f / 255f))
+                            .Append(mlContext.Transforms.ResizeImages(outputColumnName: "image", imageWidth: ImageNetSettings.imageWidth, imageHeight: ImageNetSettings.imageHeight, inputColumnName: "image", resizing: ResizingKind.Fill))
+                            .Append(mlContext.Transforms.ExtractPixels(outputColumnName: "input", inputColumnName: "image", scaleImage: 1f / 255f, orderOfExtraction: ColorsOrder.ABGR))
                             .Append(mlContext.Transforms.ApplyOnnxModel(
                                 modelFile: modelLocation,
                                 outputColumnNames: new[] { "boxes", "confs" },
@@ -50,7 +53,9 @@ namespace ObjectDetection
                                 ));
 
             // Fit scoring pipeline
+            var w = Stopwatch.StartNew();
             var model = pipeline.Fit(data);
+            Console.WriteLine($"Fit took: {w.Elapsed}");
 
             return model;
         }
@@ -62,7 +67,9 @@ namespace ObjectDetection
             Console.WriteLine("=====Identify the objects in the images=====");
             Console.WriteLine("");
 
+            var w = Stopwatch.StartNew();
             IDataView scoredData = model.Transform(testData);
+            Console.WriteLine($"Transform took: {w.Elapsed}");
 
             return scoredData;
         }

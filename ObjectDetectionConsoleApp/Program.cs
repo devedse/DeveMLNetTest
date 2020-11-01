@@ -61,7 +61,7 @@ namespace ObjectDetection
                     var confsHere = confs[i];
 
                     var parsedBoxes = parser.ParseOutputs(boxesHere, confsHere);
-                    parsedBoxes = parser.FilterBoundingBoxes(parsedBoxes, 5, 0.5f);
+                    parsedBoxes = parser.FilterBoundingBoxes(parsedBoxes, 50, 0.6f);
                     outputBoxes.Add(parsedBoxes);
                 }
 

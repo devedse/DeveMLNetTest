@@ -11,7 +11,7 @@ namespace ObjectDetection.YoloParser
 {
     class YoloOutputParser
     {
-        class CellDimensions : DimensionsBase { }
+        //class CellDimensions : DimensionsBase { }
 
         public const int ROW_COUNT = 13;
         public const int COL_COUNT = 13;
@@ -80,32 +80,32 @@ namespace ObjectDetection.YoloParser
             return (channel * this.channelStride) + (y * COL_COUNT) + x;
         }
 
-        private BoundingBoxDimensions ExtractBoundingBoxDimensions(float[] modelOutput, int x, int y, int channel)
-        {
-            return new BoundingBoxDimensions
-            {
-                X = modelOutput[GetOffset(x, y, channel)],
-                Y = modelOutput[GetOffset(x, y, channel + 1)],
-                Width = modelOutput[GetOffset(x, y, channel + 2)],
-                Height = modelOutput[GetOffset(x, y, channel + 3)]
-            };
-        }
+        //private BoundingBoxDimensions ExtractBoundingBoxDimensions(float[] modelOutput, int x, int y, int channel)
+        //{
+        //    return new BoundingBoxDimensions
+        //    {
+        //        X = modelOutput[GetOffset(x, y, channel)],
+        //        Y = modelOutput[GetOffset(x, y, channel + 1)],
+        //        Width = modelOutput[GetOffset(x, y, channel + 2)],
+        //        Height = modelOutput[GetOffset(x, y, channel + 3)]
+        //    };
+        //}
 
         private float GetConfidence(float[] modelOutput, int x, int y, int channel)
         {
             return Sigmoid(modelOutput[GetOffset(x, y, channel + 4)]);
         }
 
-        private CellDimensions MapBoundingBoxToCell(int x, int y, int box, BoundingBoxDimensions boxDimensions)
-        {
-            return new CellDimensions
-            {
-                X = ((float)x + Sigmoid(boxDimensions.X)) * CELL_WIDTH,
-                Y = ((float)y + Sigmoid(boxDimensions.Y)) * CELL_HEIGHT,
-                Width = (float)Math.Exp(boxDimensions.Width) * CELL_WIDTH * anchors[box * 2],
-                Height = (float)Math.Exp(boxDimensions.Height) * CELL_HEIGHT * anchors[box * 2 + 1],
-            };
-        }
+        //private CellDimensions MapBoundingBoxToCell(int x, int y, int box, BoundingBoxDimensions boxDimensions)
+        //{
+        //    return new CellDimensions
+        //    {
+        //        X = ((float)x + Sigmoid(boxDimensions.X)) * CELL_WIDTH,
+        //        Y = ((float)y + Sigmoid(boxDimensions.Y)) * CELL_HEIGHT,
+        //        Width = (float)Math.Exp(boxDimensions.Width) * CELL_WIDTH * anchors[box * 2],
+        //        Height = (float)Math.Exp(boxDimensions.Height) * CELL_HEIGHT * anchors[box * 2 + 1],
+        //    };
+        //}
 
         public float[] ExtractClasses(float[] modelOutput, int x, int y, int channel)
         {
@@ -150,52 +150,43 @@ namespace ObjectDetection.YoloParser
 
 
 
-        public IList<YoloBoundingBox> ParseOutputs(float[] boxes, float[] confs, float threshold = .6F)
+        public IList<YoloBoundingBox> ParseOutputs(float[] boxes, float[] confs, float threshold = .4F)
         {
-            var boxesUnflattened = new List<BoundingBoxDimensions>();
-            for (int i = 0; i < boxes.Length; i += 4)
+            var boxesUnflattened = new List<YoloBoxDimensions>();
+            for (int i = 0, boxNumber = 0; i < boxes.Length; i += 4, boxNumber++)
             {
-                boxesUnflattened.Add(new BoundingBoxDimensions()
-                {
-                    X = boxes[i],
-                    Y = boxes[i + 1],
-                    Width = boxes[i + 2] - boxes[i],
-                    Height = boxes[i + 3] - boxes[i + 1],
-                    //X = boxes[i + 0] - boxes[i + 2] / 2f,
-                    //Y = boxes[i + 1] - boxes[i + 3] / 2f,
-                    //Width = boxes[i + 0] + boxes[i + 2] / 2f,
-                    //Height = boxes[i + 1] + boxes[i + 3] / 2f,
-                    OriginalStuff = boxes.Skip(i).Take(4).ToArray()
-                });
+                boxesUnflattened.Add(new YoloBoxDimensions(boxNumber, boxes.Skip(i).Take(4).ToArray()));
             }
 
 
 
-            var confsUnflattened = new List<float[]>();
-            for (int i = 0; i < confs.Length; i += 80)
+            var confsUnflattened = new List<YoloConf>();
+            for (int i = 0, number = 0; i < confs.Length; i += labels.Length, number++)
             {
-                confsUnflattened.Add(confs.Skip(i).Take(80).ToArray());
+                confsUnflattened.Add(new YoloConf(number, confs.Skip(i).Take(labels.Length).ToArray()));
             }
 
 
-
-            var minx = boxesUnflattened.Min(t => t.X);
-            var maxx = boxesUnflattened.Max(t => t.X);
-            var miny = boxesUnflattened.Min(t => t.Y);
-            var maxy = boxesUnflattened.Max(t => t.Y);
-
-            var minw = boxesUnflattened.Min(t => t.Width);
-            var maxw = boxesUnflattened.Max(t => t.Width);
-            var minh = boxesUnflattened.Min(t => t.Height);
-            var maxh = boxesUnflattened.Max(t => t.Height);
+            var boxesIndexWhichHaveHighConfidence = confsUnflattened.Where(t => t.MaxConf > threshold).ToList();
+            var allBoxesThemselvesWithHighConfidence = boxesIndexWhichHaveHighConfidence.Join(boxesUnflattened, t => t.MatchingBoxNumber, t => t.BoxNumber, (conf, box) => (Box: box, Conf: conf)).ToList();
 
 
-            //var maxPerClass = Enumerable.Range(0, labels.Length).Select(i => confsUnflattened[i].Max()).ToList();
-            var maxConfidencePerBox = confsUnflattened.Select(t => t.Select((n, i) => (Number: n, Index: i)).Max()).ToList();
-            var boxesNumbered = boxesUnflattened.Select((b, i) => (Box: b, Index: i)).ToList();
 
-            var boxesIndexWhichHaveHighConfidence = maxConfidencePerBox.Where(t => t.Number > threshold).ToList();
-            var allBoxesThemselvesWithHighConfidence = boxesIndexWhichHaveHighConfidence.Join(boxesNumbered, t => t.Index, t => t.Index, (l, r) => (Box: r, Conf: l)).ToList();
+
+
+
+
+            ////var maxPerClass = Enumerable.Range(0, labels.Length).Select(i => confsUnflattened[i].Max()).ToList();
+            //var maxConfidencePerBox2 = confsUnflattened.Select((t, ii) => new { Conf = t.Select((n, i) => (Number: n, Index: i)).Max(), Index = ii }).ToList();
+            //var maxConfidencePerBox = confsUnflattened.Select(t => t.Select((n, i) => (Number: n, Index: i)).Max()).ToList();
+            //var boxesNumbered = boxesUnflattened.Select((b, i) => (Box: b, Index: i)).ToList();
+
+
+            //var res = boxesNumbered.Where(t => t.Box.Y > 0).ToList();
+
+            //var boxesaaaaaa = maxConfidencePerBox2.Where(t => t.Conf.Number > threshold).ToList();
+            //var boxesIndexWhichHaveHighConfidence = maxConfidencePerBox.Where(t => t.Number > threshold).ToList();
+            //var allBoxesThemselvesWithHighConfidence = boxesIndexWhichHaveHighConfidence.Join(boxesNumbered, t => t.Index, t => t.Index, (l, r) => (Box: r, Conf: l)).ToList();
 
 
             Console.WriteLine("I would expect a bike, dog and car here");
@@ -205,15 +196,15 @@ namespace ObjectDetection.YoloParser
 
             foreach (var b in allBoxesThemselvesWithHighConfidence)
             {
-                var startString = $"{b.Conf.Number}: {labels[b.Conf.Index]}";
-                Console.WriteLine($"{startString.PadRight(30, ' ')}({string.Join(",", b.Box.Box.OriginalStuff)})");
+                var startString = $"{b.Conf.MatchingBoxNumber}: {labels[b.Conf.MaxConfIndex]}";
+                Console.WriteLine($"{startString.PadRight(30, ' ')}({string.Join(",", b.Box.OriginalStuff)})");
 
                 boxesOutput.Add(new YoloBoundingBox()
                 {
-                    Dimensions = b.Box.Box,
-                    Confidence = b.Conf.Number,
-                    Label = labels[b.Conf.Index],
-                    BoxColor = classColors[b.Conf.Index % classColors.Length]
+                    Dimensions = b.Box,
+                    Confidence = b.Conf.MaxConf,
+                    Label = labels[b.Conf.MaxConfIndex],
+                    BoxColor = classColors[b.Conf.MaxConfIndex % classColors.Length]
                 });
             }
 

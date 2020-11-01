@@ -2,11 +2,9 @@
 
 namespace ObjectDetection.YoloParser
 {
-    public class BoundingBoxDimensions : DimensionsBase { }
-
     public class YoloBoundingBox
     {
-        public BoundingBoxDimensions Dimensions { get; set; }
+        public YoloBoxDimensions Dimensions { get; set; }
 
         public string Label { get; set; }
 
