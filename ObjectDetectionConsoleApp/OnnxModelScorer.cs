@@ -1,84 +1,68 @@
-﻿using System;
+﻿using Microsoft.ML;
+using ObjectDetection.DataStructures;
+using ObjectDetection.YoloParser;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.ML;
-using Microsoft.ML.Data;
-using ObjectDetection.DataStructures;
-using ObjectDetection.YoloParser;
 using static Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator;
 using static Microsoft.ML.Transforms.Image.ImageResizingEstimator;
 
 namespace ObjectDetection
 {
-    class OnnxModelScorer
+    public class OnnxModelScorer
     {
-        private readonly string imagesFolder;
-        private readonly string modelLocation;
-        private readonly MLContext mlContext;
+        public const int ModelImageHeight = 416;
+        public const int ModelImageWidth = 416;
 
-        private IList<YoloBoundingBox> _boundingBoxes = new List<YoloBoundingBox>();
 
-        public OnnxModelScorer(string imagesFolder, string modelLocation, MLContext mlContext)
+        private readonly string _modelLocation;
+        private readonly MLContext _mlContext;
+
+        private readonly ITransformer _model;
+
+        public OnnxModelScorer(MLContext mlContext, string modelLocation)
         {
-            this.imagesFolder = imagesFolder;
-            this.modelLocation = modelLocation;
-            this.mlContext = mlContext;
+            _modelLocation = modelLocation;
+            _mlContext = mlContext;
+
+            _model = LoadModel(modelLocation);
         }
 
-        public struct ImageNetSettings
-        {
-            public const int imageHeight = 416;
-            public const int imageWidth = 416;
-        }
 
 
         private ITransformer LoadModel(string modelLocation)
         {
-            Console.WriteLine("Read model");
+            Console.WriteLine("===== Reading model =====");
             Console.WriteLine($"Model location: {modelLocation}");
-            Console.WriteLine($"Default parameters: image size=({ImageNetSettings.imageWidth},{ImageNetSettings.imageHeight})");
-
-            // Create IDataView from empty list to obtain input data schema
-            var data = mlContext.Data.LoadFromEnumerable(new List<ImageNetData>());
 
             // Define scoring pipeline
-            var pipeline = mlContext.Transforms.LoadImages(outputColumnName: "image", imageFolder: "", inputColumnName: nameof(ImageNetData.ImagePath))
-                            .Append(mlContext.Transforms.ResizeImages(outputColumnName: "image", imageWidth: ImageNetSettings.imageWidth, imageHeight: ImageNetSettings.imageHeight, inputColumnName: "image", resizing: ResizingKind.Fill))
-                            .Append(mlContext.Transforms.ExtractPixels(outputColumnName: "input", inputColumnName: "image", scaleImage: 1f / 255f, orderOfExtraction: ColorsOrder.ABGR))
-                            .Append(mlContext.Transforms.ApplyOnnxModel(
+            var pipeline = _mlContext.Transforms.LoadImages(outputColumnName: "image", imageFolder: "", inputColumnName: nameof(ImageNetData.ImagePath))
+                            .Append(_mlContext.Transforms.ResizeImages(outputColumnName: "image", imageWidth: ModelImageWidth, imageHeight: ModelImageHeight, inputColumnName: "image", resizing: ResizingKind.Fill))
+                            .Append(_mlContext.Transforms.ExtractPixels(outputColumnName: "input", inputColumnName: "image", scaleImage: 1f / 255f, orderOfExtraction: ColorsOrder.ABGR))
+                            .Append(_mlContext.Transforms.ApplyOnnxModel(
                                 modelFile: modelLocation,
                                 outputColumnNames: new[] { "boxes", "confs" },
                                 inputColumnNames: new[] { "input" }
                                 ));
 
-            // Fit scoring pipeline
             var w = Stopwatch.StartNew();
-            var model = pipeline.Fit(data);
+            //Train on empty data
+            var model = pipeline.Fit(_mlContext.Data.LoadFromEnumerable(new List<ImageNetData>()));
             Console.WriteLine($"Fit took: {w.Elapsed}");
 
             return model;
         }
 
-        private IDataView PredictDataUsingModel(IDataView testData, ITransformer model)
+        public IDataView Score(IDataView data)
         {
-            Console.WriteLine($"Images location: {imagesFolder}");
-            Console.WriteLine("");
-            Console.WriteLine("=====Identify the objects in the images=====");
-            Console.WriteLine("");
+            Console.WriteLine("===== Starting tranform... =====");
 
             var w = Stopwatch.StartNew();
-            IDataView scoredData = model.Transform(testData);
+            IDataView scoredData = _model.Transform(data);
             Console.WriteLine($"Transform took: {w.Elapsed}");
 
             return scoredData;
-        }
-
-        public IDataView Score(IDataView data)
-        {
-            var model = LoadModel(modelLocation);
-
-            return PredictDataUsingModel(data, model);
         }
     }
 }
