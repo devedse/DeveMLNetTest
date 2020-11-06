@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace ObjectDetection.YoloParser
+namespace ObjectDetectionYoloV4.YoloParser
 {
     public class YoloConf
     {

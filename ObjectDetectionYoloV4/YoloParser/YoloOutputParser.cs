@@ -5,7 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 
-namespace ObjectDetection.YoloParser
+namespace ObjectDetectionYoloV4.YoloParser
 {
     public class YoloOutputParser
     {

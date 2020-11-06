@@ -1,4 +1,4 @@
-﻿namespace ObjectDetection.YoloParser
+﻿namespace ObjectDetectionYoloV4.YoloParser
 {
     public class YoloBoxDimensions
     {

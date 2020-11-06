@@ -1,11 +1,11 @@
-﻿using ObjectDetection.YoloParser;
+﻿using ObjectDetectionYoloV4.YoloParser;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 
-namespace ObjectDetection
+namespace ObjectDetectionYoloV4
 {
     public class BoxDrawer
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace ObjectDetection
+namespace ObjectDetectionYoloV4
 {
     public static class Program
     {

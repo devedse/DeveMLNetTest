@@ -1,7 +1,7 @@
-﻿using ObjectDetection.YoloParser;
+﻿using ObjectDetectionYoloV4.YoloParser;
 using System.Collections.Generic;
 
-namespace ObjectDetection
+namespace ObjectDetectionYoloV4
 {
     public class YoloOutput
     {

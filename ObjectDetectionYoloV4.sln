@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.438
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectDetection", "ObjectDetectionConsoleApp\ObjectDetection.csproj", "{17EF43C6-7F74-4491-B894-AD14209C2B47}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ObjectDetectionYoloV4", "ObjectDetectionYoloV4\ObjectDetectionYoloV4.csproj", "{17EF43C6-7F74-4491-B894-AD14209C2B47}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

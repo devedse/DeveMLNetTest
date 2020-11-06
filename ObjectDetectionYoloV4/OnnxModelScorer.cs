@@ -1,6 +1,6 @@
 ﻿using Microsoft.ML;
-using ObjectDetection.DataStructures;
-using ObjectDetection.YoloParser;
+using ObjectDetectionYoloV4.DataStructures;
+using ObjectDetectionYoloV4.YoloParser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +8,7 @@ using System.Linq;
 using static Microsoft.ML.Transforms.Image.ImagePixelExtractingEstimator;
 using static Microsoft.ML.Transforms.Image.ImageResizingEstimator;
 
-namespace ObjectDetection
+namespace ObjectDetectionYoloV4
 {
     public class OnnxModelScorer
     {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.ML.Data;
 
-namespace ObjectDetection.DataStructures
+namespace ObjectDetectionYoloV4.DataStructures
 {
     public class ImageNetData
     {
