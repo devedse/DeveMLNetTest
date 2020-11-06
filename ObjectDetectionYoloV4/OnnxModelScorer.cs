@@ -1,6 +1,5 @@
 ﻿using Microsoft.ML;
 using ObjectDetectionYoloV4.DataStructures;
-using ObjectDetectionYoloV4.YoloParser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,15 +14,12 @@ namespace ObjectDetectionYoloV4
         public const int ModelImageHeight = 416;
         public const int ModelImageWidth = 416;
 
-
-        private readonly string _modelLocation;
         private readonly MLContext _mlContext;
 
         private readonly ITransformer _model;
 
         public OnnxModelScorer(MLContext mlContext, string modelLocation)
         {
-            _modelLocation = modelLocation;
             _mlContext = mlContext;
 
             _model = LoadModel(modelLocation);
