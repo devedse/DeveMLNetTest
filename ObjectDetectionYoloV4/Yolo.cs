@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML;
 using Microsoft.ML.Data;
+using MoreLinq;
 using ObjectDetectionYoloV4.DataStructures;
 using ObjectDetectionYoloV4.YoloParser;
 using System;
@@ -46,9 +47,12 @@ namespace ObjectDetectionYoloV4
 
             // Use model to score data
             var modelOutput = _modelScorer.Score(imageDataView);
+            Console.WriteLine($">>> 1: {w.Elapsed}");
 
             var boxes = modelOutput.GetColumn<float[]>("boxes").ToList();
             var confs = modelOutput.GetColumn<float[]>("confs").ToList();
+
+            Console.WriteLine($">>> 2: {w.Elapsed}");
 
             if (boxes.Count != confs.Count && images.Count != boxes.Count)
             {
@@ -70,6 +74,8 @@ namespace ObjectDetectionYoloV4
                 var yo = new YoloOutput(imageHere.ImagePath, parsedBoxes);
                 yoloOutput.Add(yo);
             }
+
+            Console.WriteLine($">>> 3: {w.Elapsed}");
 
             Console.WriteLine($"Total elapsed time for processing: {w.Elapsed}");
             return yoloOutput;
