@@ -1,13 +1,11 @@
 ﻿using Microsoft.ML;
 using Microsoft.ML.Data;
-using MoreLinq;
 using ObjectDetectionYoloV4.DataStructures;
 using ObjectDetectionYoloV4.YoloParser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace ObjectDetectionYoloV4
 {
@@ -31,13 +29,13 @@ namespace ObjectDetectionYoloV4
             return ProcessImages(ImageNetData.ReadFromFile(directoryPath).ToList());
         }
 
-        public List<YoloOutput> ProcessImage(string imagePath)
+        public YoloOutput ProcessImage(string imagePath)
         {
             var toProcess = new List<ImageNetData>()
             {
                 new ImageNetData() { ImagePath = imagePath }
             };
-            return ProcessImages(toProcess);
+            return ProcessImages(toProcess).Single();
         }
 
         public List<YoloOutput> ProcessImages(List<ImageNetData> images)

@@ -5,18 +5,36 @@ namespace ObjectDetectionYoloV4
 {
     public static class Program
     {
+        public const string assetsRelativePath = @"../../../../ObjectDetectionYoloV4/assets";
+        public static string assetsPath = GetAbsolutePath(assetsRelativePath);
+
         public static void Main()
         {
-            var assetsRelativePath = @"../../../assets";
-            string assetsPath = GetAbsolutePath(assetsRelativePath);
+            var yolo = CreateYolo();
+
+            SimpleTest(yolo);
+
+            Console.WriteLine("===== End of Process..Hit any Key =====");
+            Console.ReadLine();
+        }
+
+        public static Yolo CreateYolo()
+        {
             //var modelFilePath = Path.Combine(assetsPath, "Model", "TinyYolo2_model.onnx");
             var modelFilePath = Path.Combine(assetsPath, "Model", "yolov4_-1_3_416_416_dynamic.onnx");
+            var fullModelFilePath = Path.GetFullPath(modelFilePath);
+            var yolo = new Yolo(fullModelFilePath);
+
+            return yolo;
+        }
+
+        private static void SimpleTest(Yolo yolo)
+        {
             var imagesFolder = Path.Combine(assetsPath, "images");
             var outputFolder = Path.Combine(assetsPath, "images", "output");
 
             try
             {
-                var yolo = new Yolo(modelFilePath);
                 var yoloOutput = yolo.ProcessDirectory(imagesFolder);
 
                 var boxDrawer = new BoxDrawer();
@@ -29,9 +47,6 @@ namespace ObjectDetectionYoloV4
             {
                 Console.WriteLine(ex.ToString());
             }
-
-            Console.WriteLine("===== End of Process..Hit any Key =====");
-            Console.ReadLine();
         }
 
         public static string GetAbsolutePath(string relativePath)
